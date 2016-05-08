@@ -136,6 +136,15 @@ var pesmiIzRacuna = function(racunId, callback) {
       console.log(vrstice);
     })
 }
+//vrni vse podatke o stranki ki jo zelim
+var podatkiOStranki=function(stevilkaStranke, callback) {
+    pb.all("SELECT * FROM Costumer WHERE Costumer.Costumer = "+ stevilkaStranke, function(napaka, vrstice) {
+      console.log(vrstice);
+      callback(napaka, vrstice);
+      }
+      );
+}
+
 
 // Vrni podrobnosti o stranki iz računa
 var strankaIzRacuna = function(racunId, callback) {
@@ -153,6 +162,7 @@ streznik.post('/izpisiRacunBaza', function(zahteva, odgovor) {
 
 // Izpis računa v HTML predstavitvi ali izvorni XML obliki
 streznik.get('/izpisiRacun/:oblika', function(zahteva, odgovor) {
+  var stevilkaStranke = zahteva.session.stranka;
   pesmiIzKosarice(zahteva, function(pesmi) {
     if (!pesmi) {
       odgovor.sendStatus(500);
@@ -160,11 +170,30 @@ streznik.get('/izpisiRacun/:oblika', function(zahteva, odgovor) {
       odgovor.send("<p>V košarici nimate nobene pesmi, \
         zato računa ni mogoče pripraviti!</p>");
     } else {
+      var podatki;
+      podatkiOStranki(stevilkaStranke, function(napaka, stranke){
+        console.log(stranke);
+        if(stranke.length == 0 || stranke == undefined)
+        {
+           odgovor.send("<p>Prijavljeni niste kot nobena stranka, \
+        zato računa ni mogoče pripraviti!</p>");
+        }
+        else
+        {
+           odgovor.setHeader('content-type', 'text/xml');
+           odgovor.render('eslog', {
+           vizualiziraj: zahteva.params.oblika == 'html' ? true : false,
+           postavkeRacuna: pesmi ,
+           stranka: stranke[0]
+           })          
+        }
+      })
+      /*
       odgovor.setHeader('content-type', 'text/xml');
       odgovor.render('eslog', {
         vizualiziraj: zahteva.params.oblika == 'html' ? true : false,
-        postavkeRacuna: pesmi
-      })  
+        postavkeRacuna: pesmi 
+      })  */
     }
   })
 })
@@ -231,8 +260,9 @@ streznik.get('/prijava', function(zahteva, odgovor) {
 // Prikaz nakupovalne košarice za stranko
 streznik.post('/stranka', function(zahteva, odgovor) {
   var form = new formidable.IncomingForm();
-  
   form.parse(zahteva, function (napaka1, polja, datoteke) {
+    var strankaIzPolja = polja.seznamStrank;
+    zahteva.session.stranka = strankaIzPolja;
     odgovor.redirect('/')
   });
 })

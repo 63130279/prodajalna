@@ -150,11 +150,10 @@ var pesmiIzRacuna = function(racunId, callback) {
 }
 //vrni vse podatke o stranki ki jo zelim
 var podatkiOStranki=function(stevilkaStranke, callback) {
-    pb.all("SELECT * FROM Costumer WHERE Costumer.Costumer = "+ stevilkaStranke, function(napaka, vrstice) {
-      console.log(vrstice);
+   pb.all("SELECT * FROM Customer WHERE Customer.CustomerId = " + stevilkaStranke, function(napaka, vrstice) {
       callback(napaka, vrstice);
-      }
-      );
+    }
+    );
 }
 
 
@@ -311,15 +310,8 @@ streznik.get('/prijava', function(zahteva, odgovor) {
 streznik.post('/stranka', function(zahteva, odgovor) {
   var form = new formidable.IncomingForm();
   form.parse(zahteva, function (napaka1, polja, datoteke) {
-<<<<<<< HEAD
-    
-    var trenutnaStranka = polja.seznamStrank;
-    zahteva.session.stranka = trenutnaStranka;
-    
-=======
     var strankaIzPolja = polja.seznamStrank;
     zahteva.session.stranka = strankaIzPolja;
->>>>>>> prikaz-racuna-trenutni
     odgovor.redirect('/')
   });
 })
